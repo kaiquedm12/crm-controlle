@@ -1,6 +1,6 @@
 # Backend CRM Sales Platform
 
-Backend REST em Node.js + TypeScript com arquitetura modular, Prisma ORM e PostgreSQL no Supabase.
+Backend REST em Node.js + TypeScript, com arquitetura modular e refatorado para microsservicos (Auth Service + CRM Service), Prisma ORM e PostgreSQL no Supabase.
 
 ## Stack
 
@@ -15,7 +15,9 @@ Backend REST em Node.js + TypeScript com arquitetura modular, Prisma ORM e Postg
 
 ## Arquitetura
 
-- Modular Monolith por dominio (`auth`, `users`, `leads`, etc.)
+- Microsservicos:
+  - Auth Service: autenticacao e emissao de tokens
+  - CRM Service: dominios de negocio (leads, pipeline, deals, cadencias, etc.)
 - Separacao por camada HTTP e aplicacao:
 	- `routes.ts`: definicao de rotas e middlewares
 	- `controllers/`: validacao de entrada e orquestracao HTTP
@@ -95,13 +97,14 @@ npm run prisma:migrate -- --name init
 npm run prisma:seed
 ```
 
-5. Rodar API em desenvolvimento (local):
+5. Rodar microsservicos em desenvolvimento (local):
 
 ```bash
-npm run dev
+npm run dev:auth
+npm run dev:crm
 ```
 
-Ou subir a API com Docker Compose:
+Ou subir ambos com Docker Compose:
 
 ```bash
 docker compose up -d
@@ -109,9 +112,13 @@ docker compose up -d
 
 ## Scripts
 
-- `npm run dev`: sobe a API com watch
+- `npm run dev`: sobe o monolito legado (compatibilidade)
+- `npm run dev:auth`: sobe o Auth Service
+- `npm run dev:crm`: sobe o CRM Service
 - `npm run build`: compila TypeScript para `dist`
-- `npm run start`: executa build compilada
+- `npm run start`: executa build compilada do monolito legado
+- `npm run start:auth`: executa build compilada do Auth Service
+- `npm run start:crm`: executa build compilada do CRM Service
 - `npm run test`: executa testes automatizados (Vitest)
 - `npm run test:watch`: executa testes em modo watch
 - `npm run prisma:generate`: gera Prisma Client
@@ -128,8 +135,11 @@ docker compose up -d
 	- `tests/integration/app.test.ts`
 	- `tests/mocks/prisma-mock.ts`
 
-API: `http://localhost:3333`
-Healthcheck: `GET /health`
+Auth Service: `http://localhost:3331`
+CRM Service: `http://localhost:3332`
+Healthchecks:
+- `GET http://localhost:3331/health`
+- `GET http://localhost:3332/health`
 
 ## Usuario inicial (seed)
 
@@ -140,58 +150,68 @@ Healthcheck: `GET /health`
 ## Endpoints principais
 
 ### Auth
+- Base URL: `http://localhost:3331`
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/refresh`
 
 ### Users
+- Base URL: `http://localhost:3332`
 - `GET /users` (ADMIN, MANAGER)
 - `POST /users` (ADMIN)
 - `PATCH /users/:id` (ADMIN)
 - `DELETE /users/:id` (ADMIN)
 
 ### Leads
+- Base URL: `http://localhost:3332`
 - `GET /leads`
 - `POST /leads`
 - `PATCH /leads/:id`
 - `DELETE /leads/:id`
 
 ### Pipeline
+- Base URL: `http://localhost:3332`
 - `GET /pipeline`
 - `POST /pipeline` (ADMIN, MANAGER)
 - `POST /pipeline/:pipelineId/stages` (ADMIN, MANAGER)
 - `POST /pipeline/move-lead/:leadId`
 
 ### Deals
+- Base URL: `http://localhost:3332`
 - `GET /deals`
 - `POST /deals`
 - `PATCH /deals/:id`
 
 ### Cadences
+- Base URL: `http://localhost:3332`
 - `GET /cadences`
 - `POST /cadences` (ADMIN, MANAGER)
 - `POST /cadences/:cadenceId/steps` (ADMIN, MANAGER)
 - `POST /cadences/assign`
 
 ### Messages
+- Base URL: `http://localhost:3332`
 - `GET /messages`
 - `POST /messages/send`
 
 ### Integrations
+- Base URL: `http://localhost:3332`
 - `POST /integrations/whatsapp/webhook`
 
 ### Activities
+- Base URL: `http://localhost:3332`
 - `GET /activities`
 - `GET /activities/lead/:leadId`
 
 ### Reports
+- Base URL: `http://localhost:3332`
 - `GET /reports/funnel`
 - `GET /reports/deals`
 - `GET /reports/performance/users`
 
 ## Scheduler
 
-O scheduler executa automaticamente no bootstrap do servidor e processa cadencias ativas a cada minuto.
+O scheduler executa automaticamente no bootstrap do CRM Service e processa cadencias ativas a cada minuto.
 
 ## Seguranca
 

@@ -1,13 +1,26 @@
 services:
-  api:
+  auth-service:
     image: node:22-alpine
-    container_name: crm-controlle-api
+    container_name: crm-controlle-auth-service
     working_dir: /app
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "3333:3333"
+      - "3331:3331"
     volumes:
       - ./:/app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm run dev:auth"
+
+  crm-service:
+    image: node:22-alpine
+    container_name: crm-controlle-crm-service
+    working_dir: /app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3332:3332"
+    volumes:
+      - ./:/app
+    command: sh -c "npm install && npm run dev:crm"

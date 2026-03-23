@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/main/server.ts",
+    "dev:auth": "tsx watch src/main/auth-server.ts",
+    "dev:crm": "tsx watch src/main/crm-server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main/server.js",
+    "start:auth": "node dist/main/auth-server.js",
+    "start:crm": "node dist/main/crm-server.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
