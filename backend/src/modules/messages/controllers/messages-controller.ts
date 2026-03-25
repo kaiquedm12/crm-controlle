@@ -10,8 +10,8 @@ const sendMessageSchema = z.object({
 export class MessagesController {
   constructor(private readonly service: MessagesService) {}
 
-  list = async (_req: Request, res: Response): Promise<void> => {
-    const messages = await this.service.list();
+  list = async (req: Request, res: Response): Promise<void> => {
+    const messages = await this.service.list(req.user!.actingTenantId!);
     res.json(messages);
   };
 
@@ -19,6 +19,7 @@ export class MessagesController {
     const body = sendMessageSchema.parse(req.body);
     const message = await this.service.send({
       ...body,
+      tenantId: req.user!.actingTenantId!,
       actorUserId: req.user!.id,
     });
 

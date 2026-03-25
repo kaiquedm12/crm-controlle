@@ -17,8 +17,8 @@ const updateDealSchema = z.object({
 export class DealsController {
   constructor(private readonly service: DealsService) {}
 
-  list = async (_req: Request, res: Response): Promise<void> => {
-    const deals = await this.service.list();
+  list = async (req: Request, res: Response): Promise<void> => {
+    const deals = await this.service.list(req.user!.actingTenantId!);
     res.json(deals);
   };
 
@@ -26,6 +26,7 @@ export class DealsController {
     const body = createDealSchema.parse(req.body);
     const deal = await this.service.create({
       ...body,
+      tenantId: req.user!.actingTenantId!,
       actorUserId: req.user!.id,
     });
 
@@ -35,6 +36,7 @@ export class DealsController {
   update = async (req: Request, res: Response): Promise<void> => {
     const body = updateDealSchema.parse(req.body);
     const deal = await this.service.update({
+      tenantId: req.user!.actingTenantId!,
       id: req.params.id,
       ...body,
       actorUserId: req.user!.id,

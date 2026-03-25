@@ -6,6 +6,7 @@ import { AppError } from '../errors/AppError';
 type JwtPayload = {
   sub: string;
   role: UserRole;
+  tenantId?: string | null;
 };
 
 declare global {
@@ -14,6 +15,8 @@ declare global {
       user?: {
         id: string;
         role: UserRole;
+        tenantId: string | null;
+        actingTenantId: string | null;
       };
     }
   }
@@ -33,9 +36,17 @@ export function ensureAuth(req: Request, _res: Response, next: NextFunction): vo
 
   try {
     const payload = verifyAccessToken(token) as JwtPayload;
+    const requestedTenantId =
+      typeof req.headers['x-tenant-id'] === 'string' ? req.headers['x-tenant-id'] : undefined;
+
+    const tokenTenantId = payload.tenantId ?? null;
+    const actingTenantId = payload.role === UserRole.SUPER_ADMIN ? requestedTenantId ?? tokenTenantId : tokenTenantId;
+
     req.user = {
       id: payload.sub,
       role: payload.role,
+      tenantId: tokenTenantId,
+      actingTenantId,
     };
     next();
   } catch {

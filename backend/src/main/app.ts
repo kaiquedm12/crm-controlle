@@ -14,7 +14,10 @@ import { messagesRoutes } from '../modules/messages/routes';
 import { reportsRoutes } from '../modules/reports/routes';
 import { activitiesRoutes } from '../modules/activities/routes';
 import { integrationsRoutes } from '../modules/integrations/routes';
+import { tenantsRoutes } from '../modules/tenants/routes';
+import { adminRoutes } from '../modules/admin/routes';
 import { ensureAuth } from '../shared/middlewares/ensure-auth';
+import { ensureTenant } from '../shared/middlewares/ensure-tenant';
 
 export const app = express();
 
@@ -45,6 +48,9 @@ app.use('/auth', authLimiter, authRoutes);
 app.use('/integrations', integrationsRoutes);
 
 app.use(ensureAuth);
+app.use('/admin', adminRoutes);
+app.use('/tenants', tenantsRoutes);
+app.use(ensureTenant);
 app.use('/users', usersRoutes);
 app.use('/leads', leadsRoutes);
 app.use('/pipeline', pipelineRoutes);

@@ -8,6 +8,6 @@ export const pipelineRoutes = Router();
 const pipelineController = new PipelineController(new PipelineService());
 
 pipelineRoutes.get('/', pipelineController.list);
-pipelineRoutes.post('/', ensureRole([UserRole.ADMIN, UserRole.MANAGER]), pipelineController.create);
-pipelineRoutes.post('/:pipelineId/stages', ensureRole([UserRole.ADMIN, UserRole.MANAGER]), pipelineController.createStage);
+pipelineRoutes.post('/', ensureRole([UserRole.TENANT_ADMIN]), pipelineController.create);
+pipelineRoutes.post('/:pipelineId/stages', ensureRole([UserRole.TENANT_ADMIN]), pipelineController.createStage);
 pipelineRoutes.post('/move-lead/:leadId', pipelineController.moveLead);

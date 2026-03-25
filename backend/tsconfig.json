@@ -9,12 +9,10 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": ".",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@prisma/client": ["node_modules/.prisma/client"]
-    }
+    "types": ["node"]
   },
   "include": ["src", "prisma/seed.ts"],
   "exclude": ["node_modules", "dist"]

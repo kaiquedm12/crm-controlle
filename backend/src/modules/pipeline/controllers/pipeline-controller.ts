@@ -20,8 +20,8 @@ const moveLeadSchema = z.object({
 export class PipelineController {
   constructor(private readonly service: PipelineService) {}
 
-  list = async (_req: Request, res: Response): Promise<void> => {
-    const pipelines = await this.service.list();
+  list = async (req: Request, res: Response): Promise<void> => {
+    const pipelines = await this.service.list(req.user!.actingTenantId!);
     res.json(pipelines);
   };
 
@@ -29,6 +29,7 @@ export class PipelineController {
     const body = createPipelineSchema.parse(req.body);
     const pipeline = await this.service.create({
       ...body,
+      tenantId: req.user!.actingTenantId!,
       createdById: req.user!.id,
     });
 
@@ -38,6 +39,7 @@ export class PipelineController {
   createStage = async (req: Request, res: Response): Promise<void> => {
     const body = createStageSchema.parse(req.body);
     const stage = await this.service.createStage({
+      tenantId: req.user!.actingTenantId!,
       pipelineId: req.params.pipelineId,
       ...body,
     });
@@ -48,6 +50,7 @@ export class PipelineController {
   moveLead = async (req: Request, res: Response): Promise<void> => {
     const body = moveLeadSchema.parse(req.body);
     const lead = await this.service.moveLead({
+      tenantId: req.user!.actingTenantId!,
       leadId: req.params.leadId,
       actorUserId: req.user!.id,
       ...body,

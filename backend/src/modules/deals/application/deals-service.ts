@@ -2,6 +2,7 @@ import { DealStatus } from '@prisma/client';
 import { prisma } from '../../../infra/database/prisma/client';
 
 type CreateDealInput = {
+  tenantId: string;
   leadId: string;
   amount: number;
   status?: DealStatus;
@@ -9,6 +10,7 @@ type CreateDealInput = {
 };
 
 type UpdateDealInput = {
+  tenantId: string;
   id: string;
   amount?: number;
   status?: DealStatus;
@@ -16,8 +18,9 @@ type UpdateDealInput = {
 };
 
 export class DealsService {
-  list() {
+  list(tenantId: string) {
     return prisma.deal.findMany({
+      where: { tenantId },
       include: {
         lead: {
           select: {
@@ -34,6 +37,7 @@ export class DealsService {
   async create(input: CreateDealInput) {
     const deal = await prisma.deal.create({
       data: {
+        tenantId: input.tenantId,
         leadId: input.leadId,
         amount: input.amount,
         status: input.status ?? DealStatus.OPEN,
@@ -43,6 +47,7 @@ export class DealsService {
 
     await prisma.activity.create({
       data: {
+        tenantId: input.tenantId,
         leadId: input.leadId,
         userId: input.actorUserId,
         type: 'DEAL_CREATED',
@@ -54,8 +59,8 @@ export class DealsService {
   }
 
   async update(input: UpdateDealInput) {
-    const deal = await prisma.deal.update({
-      where: { id: input.id },
+    await prisma.deal.updateMany({
+      where: { id: input.id, tenantId: input.tenantId },
       data: {
         amount: input.amount,
         status: input.status,
@@ -63,8 +68,13 @@ export class DealsService {
       },
     });
 
+    const deal = await prisma.deal.findFirstOrThrow({
+      where: { id: input.id, tenantId: input.tenantId },
+    });
+
     await prisma.activity.create({
       data: {
+        tenantId: input.tenantId,
         leadId: deal.leadId,
         userId: input.actorUserId,
         type: 'DEAL_UPDATED',

@@ -2,8 +2,9 @@ import { DealStatus } from '@prisma/client';
 import { prisma } from '../../../infra/database/prisma/client';
 
 export class ReportsService {
-  async funnel() {
+  async funnel(tenantId: string) {
     const stages = await prisma.stage.findMany({
+      where: { tenantId },
       include: {
         _count: {
           select: {
@@ -29,12 +30,12 @@ export class ReportsService {
     }));
   }
 
-  async deals() {
+  async deals(tenantId: string) {
     const [openCount, wonCount, lostCount, deals] = await Promise.all([
-      prisma.deal.count({ where: { status: DealStatus.OPEN } }),
-      prisma.deal.count({ where: { status: DealStatus.WON } }),
-      prisma.deal.count({ where: { status: DealStatus.LOST } }),
-      prisma.deal.findMany({ select: { amount: true, status: true } }),
+      prisma.deal.count({ where: { tenantId, status: DealStatus.OPEN } }),
+      prisma.deal.count({ where: { tenantId, status: DealStatus.WON } }),
+      prisma.deal.count({ where: { tenantId, status: DealStatus.LOST } }),
+      prisma.deal.findMany({ where: { tenantId }, select: { amount: true, status: true } }),
     ]);
 
     const wonRevenue = deals
@@ -49,8 +50,9 @@ export class ReportsService {
     };
   }
 
-  performanceUsers() {
+  performanceUsers(tenantId: string) {
     return prisma.user.findMany({
+      where: { tenantId },
       select: {
         id: true,
         name: true,

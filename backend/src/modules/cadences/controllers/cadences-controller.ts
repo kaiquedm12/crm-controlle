@@ -24,8 +24,8 @@ const assignCadenceSchema = z.object({
 export class CadencesController {
   constructor(private readonly service: CadencesService) {}
 
-  list = async (_req: Request, res: Response): Promise<void> => {
-    const cadences = await this.service.list();
+  list = async (req: Request, res: Response): Promise<void> => {
+    const cadences = await this.service.list(req.user!.actingTenantId!);
     res.json(cadences);
   };
 
@@ -33,6 +33,7 @@ export class CadencesController {
     const body = createCadenceSchema.parse(req.body);
     const cadence = await this.service.create({
       ...body,
+      tenantId: req.user!.actingTenantId!,
       createdBy: req.user!.id,
     });
 
@@ -42,6 +43,7 @@ export class CadencesController {
   createStep = async (req: Request, res: Response): Promise<void> => {
     const body = createStepSchema.parse(req.body);
     const step = await this.service.createStep({
+      tenantId: req.user!.actingTenantId!,
       cadenceId: req.params.cadenceId,
       ...body,
     });
@@ -53,6 +55,7 @@ export class CadencesController {
     const body = assignCadenceSchema.parse(req.body);
     const execution = await this.service.assign({
       ...body,
+      tenantId: req.user!.actingTenantId!,
       actorUserId: req.user!.id,
     });
 

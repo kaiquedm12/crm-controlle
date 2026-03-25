@@ -4,18 +4,18 @@ import { ReportsService } from '../application/reports-service';
 export class ReportsController {
   constructor(private readonly service: ReportsService) {}
 
-  funnel = async (_req: Request, res: Response): Promise<void> => {
-    const report = await this.service.funnel();
+  funnel = async (req: Request, res: Response): Promise<void> => {
+    const report = await this.service.funnel(req.user!.actingTenantId!);
     res.json(report);
   };
 
-  deals = async (_req: Request, res: Response): Promise<void> => {
-    const report = await this.service.deals();
+  deals = async (req: Request, res: Response): Promise<void> => {
+    const report = await this.service.deals(req.user!.actingTenantId!);
     res.json(report);
   };
 
-  performanceUsers = async (_req: Request, res: Response): Promise<void> => {
-    const report = await this.service.performanceUsers();
+  performanceUsers = async (req: Request, res: Response): Promise<void> => {
+    const report = await this.service.performanceUsers(req.user!.actingTenantId!);
     res.json(report);
   };
 }

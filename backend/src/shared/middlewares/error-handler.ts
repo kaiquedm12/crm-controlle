@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
 import { AppError } from '../errors/AppError';
 
@@ -12,6 +13,13 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     res.status(400).json({
       message: 'Erro de validacao',
       errors: error.flatten(),
+    });
+    return;
+  }
+
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    res.status(503).json({
+      message: 'Servico indisponivel: sem conexao com o banco de dados',
     });
     return;
   }

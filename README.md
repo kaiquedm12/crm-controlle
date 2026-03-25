@@ -1,196 +1,120 @@
-# 🚀 CRM Sales Platform
+# CRM Controlle
 
-Sistema de **CRM (Customer Relationship Management)** focado em gestão de vendas, com suporte a estratégias de **Inbound e Outbound (Sales Engagement)**.
+Plataforma CRM multi-tenant para operação comercial com foco em pipeline, produtividade de equipe e governança de acesso por perfil.
 
-O objetivo da plataforma é fornecer uma solução simples, escalável e eficiente para equipes comerciais organizarem seus leads, automatizarem cadências e acompanharem métricas de desempenho.
+## Visão Executiva
 
----
+O projeto está organizado como monorepo com duas aplicações principais:
 
-## 📌 Visão Geral
+- Backend TypeScript com serviços separados para autenticação e domínio CRM.
+- Frontend Next.js para operação diária de funil, equipe, mensagens, finanças e administração.
 
-Este projeto foi idealizado com base em uma necessidade real do mercado:
+O sistema suporta:
 
-A maioria dos CRMs tradicionais é focada em **Inbound**, enquanto equipes comerciais que trabalham com **Outbound** (prospecção ativa) precisam de ferramentas mais dinâmicas e automatizadas.
+- Multi-tenant com isolamento por tenant.
+- RBAC com perfis SUPER_ADMIN, TENANT_ADMIN e USER.
+- Pipeline Kanban com movimentação de leads.
+- Relatórios operacionais (funil, performance de usuários e deals).
+- Fluxo inicial de onboarding com provisionamento automático de pipeline padrão.
 
-A proposta é criar uma solução que atenda ambos os cenários:
+## Arquitetura
 
-- 📥 **Inbound Sales** → Gestão de leads que chegam até a empresa  
-- 📤 **Outbound Sales** → Prospecção ativa com cadência e automação  
-
----
-
-## 🎯 Objetivos
-
-- Centralizar a gestão de leads e oportunidades
-- Implementar pipeline de vendas visual (Kanban)
-- Automatizar cadências de contato (Outbound)
-- Integrar comunicação via WhatsApp
-- Gerar relatórios de performance em funil
-- Criar uma base sólida para escalabilidade futura
-
----
-
-## 🧱 Stack Tecnológica
-
-### 🔹 Backend
-- Node.js
-- TypeScript
-- PostgreSQL
-- Prisma ORM
-- Arquitetura REST
-
-### 🔹 Frontend
-- React
-- Next.js
-- TypeScript
-- TailwindCSS (opcional)
-- Zustand ou Context API
-
----
-
-## 📁 Estrutura do Projeto
-
-```bash
-crm-sales-platform/
-│
-├── backend/
-│   ├── src/
-│   │   ├── modules/
-│   │   │   ├── auth/
-│   │   │   ├── users/
-│   │   │   ├── leads/
-│   │   │   ├── pipeline/
-│   │   │   ├── cadences/
-│   │   │   ├── messages/
-│   │   │   └── reports/
-│   │   │
-│   │   ├── infra/
-│   │   │   ├── database/
-│   │   │   ├── http/
-│   │   │   └── integrations/
-│   │   │
-│   │   ├── shared/
-│   │   │   ├── utils/
-│   │   │   ├── errors/
-│   │   │   └── types/
-│   │   │
-│   │   └── app.ts
-│   │
-│   ├── prisma/
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── contexts/
-│   │   └── styles/
-│   │
-│   └── package.json
-│
-└── README.md
+```text
+frontend (Next.js 16)
+	|
+	| HTTP (JWT)
+	v
+auth-service (3331)      crm-service (3332)
+		 \                    /
+		  \                  /
+			 PostgreSQL + Prisma
 ```
 
-## ⚙️ Funcionalidades
+## Estrutura do Repositório
 
-### 📊 Pipeline de Vendas (Kanban)
-- Visualização em colunas (ex: Lead → Contato → Proposta → Fechado)
-- Drag and drop entre etapas
-- Personalização de pipeline
+```text
+.
+├─ backend/
+│  ├─ prisma/
+│  ├─ src/
+│  │  ├─ infra/
+│  │  ├─ main/
+│  │  ├─ modules/
+│  │  └─ shared/
+│  └─ README.md
+├─ frontend/
+│  ├─ public/
+│  ├─ src/
+│  │  ├─ app/
+│  │  ├─ components/
+│  │  ├─ services/
+│  │  └─ types/
+│  └─ README.md
+└─ README.md
+```
 
----
+## Stack Tecnológico
 
-### 🔁 Cadência de Contato (Outbound)
-- Criação de fluxos de contato automatizados
+- Backend: Node.js, TypeScript, Express, Prisma, PostgreSQL, Zod, JWT, Vitest.
+- Frontend: Next.js 16 (App Router), React 19, TypeScript, TailwindCSS, dnd-kit.
+- Infra local: Docker Compose para execução de serviços backend.
 
-**Exemplo:**
-- Dia 1 → Mensagem WhatsApp
-- Dia 3 → Follow-up
-- Dia 5 → Última tentativa
+## Início Rápido
 
-- Agendamento automático
-- Histórico de interações
+Pré-requisitos:
 
----
+- Node.js 22+
+- npm 10+
+- Banco PostgreSQL disponível (local ou cloud)
 
-### 📱 Integração com WhatsApp
-- Envio de mensagens diretamente pelo CRM
-- Templates reutilizáveis
-- Registro automático de interações
+### 1) Backend
 
-> Nota: integração via WhatsApp Business API (planejado)
+```bash
+cd backend
+npm install
+npm run prisma:generate
+npm run prisma:deploy
+npm run prisma:seed
+npm run dev:auth
+# em outro terminal
+npm run dev:crm
+```
 
----
+### 2) Frontend
 
-### 📈 Relatórios e Funil
-- Taxa de conversão por etapa
-- Tempo médio por estágio
-- Performance por vendedor
-- Dashboard com métricas
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
----
+## Portas Padrão
 
-### 👤 Gestão de Leads
-- Cadastro manual ou importação
-- Histórico completo de interações
-- Tags e segmentação
+- Frontend: 3000
+- Auth Service: 3331
+- CRM Service: 3332
 
----
+## Documentação por Módulo
 
-### 🔐 Autenticação e Permissões
-- Autenticação com JWT
+- Backend técnico: ver `backend/README.md`
+- Frontend técnico: ver `frontend/README.md`
 
-**Controle de acesso:**
-- Admin
-- Vendedor
-- Gestor
+## Segurança e Acesso
 
----
+- Tokens JWT (access + refresh).
+- Escopo tenant por token e por header `x-tenant-id` para operações de SUPER_ADMIN.
+- Middlewares de autenticação, autorização por perfil e tratamento de erro centralizado.
 
-## 🗄️ Modelagem Inicial
+## Estado Atual do Produto
 
-### Entidades principais:
-- Users
-- Leads
-- Pipelines
-- Stages
-- Deals
-- Cadences
-- Messages
-- Activities
+Implementado:
 
----
+- Login e sessão multi-tenant.
+- Painel Kanban com drag-and-drop.
+- Gestão de usuários por tenant e camada global de administração.
+- Integrações e relatórios básicos de operação.
 
-## 🔄 Fluxo do Sistema
+Em evolução:
 
-1. Usuário cria/importa um lead  
-2. Lead entra no pipeline (Kanban)  
-3. É atribuída uma cadência de contato  
-4. Interações são executadas (manual ou automatizada)  
-5. Lead avança nas etapas  
-6. Conversão é registrada  
-7. Dados alimentam relatórios  
-
----
-
-## 🔌 Integrações Futuras
-- WhatsApp Business API
-- Email (SMTP / SendGrid)
-- Webhooks
-- APIs de geração de leads
-
----
-
-## 🧪 Testes
-
-### Backend
-- Jest
-- Supertest
-
-### Frontend
-- Jest
-- React Testing Library
-
----
+- Integrações externas avançadas.
+- Observabilidade e hardening de produção.

@@ -3,6 +3,7 @@ import { prisma } from '../../../infra/database/prisma/client';
 import { hashPassword } from '../../../shared/utils/password';
 
 type CreateUserInput = {
+  tenantId: string;
   name: string;
   email: string;
   password: string;
@@ -10,13 +11,15 @@ type CreateUserInput = {
 };
 
 type UpdateUserInput = {
+  tenantId: string;
   name?: string;
   role?: UserRole;
 };
 
 export class UsersService {
-  list() {
+  list(tenantId: string) {
     return prisma.user.findMany({
+      where: { tenantId },
       select: {
         id: true,
         name: true,
@@ -33,6 +36,7 @@ export class UsersService {
 
     return prisma.user.create({
       data: {
+        tenantId: input.tenantId,
         name: input.name,
         email: input.email,
         passwordHash,
@@ -49,23 +53,29 @@ export class UsersService {
   }
 
   update(id: string, input: UpdateUserInput) {
-    return prisma.user.update({
-      where: { id },
-      data: {
-        name: input.name,
-        role: input.role,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+    return prisma.user
+      .updateMany({
+        where: { id, tenantId: input.tenantId },
+        data: {
+          name: input.name,
+          role: input.role,
+        },
+      })
+      .then(() =>
+        prisma.user.findFirstOrThrow({
+          where: { id, tenantId: input.tenantId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+          },
+        }),
+      );
   }
 
-  async delete(id: string): Promise<void> {
-    await prisma.user.delete({ where: { id } });
+  async delete(id: string, tenantId: string): Promise<void> {
+    await prisma.user.deleteMany({ where: { id, tenantId } });
   }
 }

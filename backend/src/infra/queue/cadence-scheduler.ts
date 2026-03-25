@@ -43,6 +43,7 @@ async function executeDueCadences(): Promise<void> {
 
         await prisma.message.create({
           data: {
+            tenantId: execution.tenantId,
             leadId: execution.leadId,
             direction: MessageDirection.OUTBOUND,
             content: step.template,
@@ -53,6 +54,7 @@ async function executeDueCadences(): Promise<void> {
 
       await prisma.activity.create({
         data: {
+          tenantId: execution.tenantId,
           leadId: execution.leadId,
           type: 'CADENCE_STEP_EXECUTED',
           description: `Step ${execution.stepIndex + 1} executado`,

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -13,7 +14,10 @@ import { messagesRoutes } from '../modules/messages/routes';
 import { reportsRoutes } from '../modules/reports/routes';
 import { activitiesRoutes } from '../modules/activities/routes';
 import { integrationsRoutes } from '../modules/integrations/routes';
+import { tenantsRoutes } from '../modules/tenants/routes';
+import { adminRoutes } from '../modules/admin/routes';
 import { ensureAuth } from '../shared/middlewares/ensure-auth';
+import { ensureTenant } from '../shared/middlewares/ensure-tenant';
 
 export const crmApp = express();
 
@@ -36,6 +40,9 @@ crmApp.get('/health', (_req, res) => {
 crmApp.use('/integrations', integrationsRoutes);
 
 crmApp.use(ensureAuth);
+crmApp.use('/admin', adminRoutes);
+crmApp.use('/tenants', tenantsRoutes);
+crmApp.use(ensureTenant);
 crmApp.use('/users', usersRoutes);
 crmApp.use('/leads', leadsRoutes);
 crmApp.use('/pipeline', pipelineRoutes);

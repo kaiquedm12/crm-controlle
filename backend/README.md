@@ -1,223 +1,146 @@
-# Backend CRM Sales Platform
+# Backend CRM Controlle
 
-Backend REST em Node.js + TypeScript, com arquitetura modular e refatorado para microsservicos (Auth Service + CRM Service), Prisma ORM e PostgreSQL no Supabase.
+Servicos REST em Node.js/TypeScript para autenticacao e dominio CRM, com persistencia em PostgreSQL via Prisma ORM.
+
+## Componentes
+
+- Auth Service: login, refresh token, registro e contexto de identidade.
+- CRM Service: modulos de negocio (leads, pipeline, deals, relatorios, usuarios, admin, mensagens e cadencias).
 
 ## Stack
 
-- Node.js
-- TypeScript
-- Express
-- Prisma
-- PostgreSQL (Supabase)
-- JWT (access + refresh)
-- Zod (validacao)
-- node-cron (scheduler de cadencias)
+- Runtime: Node.js 22+
+- Linguagem: TypeScript
+- Web: Express
+- Validacao: Zod
+- Persistencia: Prisma + PostgreSQL
+- Seguranca: JWT, bcryptjs, rate limit
+- Testes: Vitest + Supertest
 
-## Arquitetura
+## Arquitetura de Pastas
 
-- Microsservicos:
-  - Auth Service: autenticacao e emissao de tokens
-  - CRM Service: dominios de negocio (leads, pipeline, deals, cadencias, etc.)
-- Separacao por camada HTTP e aplicacao:
-	- `routes.ts`: definicao de rotas e middlewares
-	- `controllers/`: validacao de entrada e orquestracao HTTP
-	- `application/*-service.ts`: regras de negocio e casos de uso
-- Persistencia com Prisma usada diretamente pelos services
-- Sem camada de repositorio dedicada neste momento
-
-## Estrutura
-
-```bash
+```text
 backend/
-├── prisma/
-│   ├── schema.prisma
-│   └── seed.ts
-├── src/
-│   ├── infra/
-│   │   ├── database/prisma/client.ts
-│   │   ├── integrations/whatsapp/whatsapp-client.ts
-│   │   └── queue/cadence-scheduler.ts
-│   ├── main/
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── modules/
-│   │   ├── auth/
-│   │   │   ├── application/auth-service.ts
-│   │   │   ├── controllers/auth-controller.ts
-│   │   │   └── routes.ts
-│   │   ├── users/
-│   │   │   ├── application/users-service.ts
-│   │   │   ├── controllers/users-controller.ts
-│   │   │   └── routes.ts
-│   │   ├── leads/
-│   │   │   ├── application/leads-service.ts
-│   │   │   ├── controllers/leads-controller.ts
-│   │   │   └── routes.ts
-│   │   ├── pipeline/
-│   │   ├── deals/
-│   │   ├── cadences/
-│   │   ├── messages/
-│   │   ├── reports/
-│   │   ├── activities/
-│   │   └── integrations/
-│   └── shared/
-│       ├── errors/AppError.ts
-│       ├── middlewares/
-│       └── utils/
-├── .env.example
-├── docker-compose.yml
-├── package.json
-└── tsconfig.json
+├─ prisma/
+│  ├─ schema.prisma
+│  ├─ migrations/
+│  └─ seed.ts
+├─ src/
+│  ├─ infra/
+│  │  ├─ database/prisma/client.ts
+│  │  ├─ integrations/
+│  │  └─ queue/
+│  ├─ main/
+│  │  ├─ auth-app.ts
+│  │  ├─ auth-server.ts
+│  │  ├─ crm-app.ts
+│  │  └─ crm-server.ts
+│  ├─ modules/
+│  └─ shared/
+└─ tests/
 ```
 
-## Como rodar
+## Variaveis de Ambiente
 
-1. Criar arquivo `.env` com base em `.env.example` e configurar `DATABASE_URL` do Supabase.
+Crie um arquivo `.env` em `backend/` com, no minimo:
 
-```bash
-docker compose up -d
+```env
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DB
+JWT_SECRET=change-me
+JWT_REFRESH_SECRET=change-me-too
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+AUTH_SERVICE_PORT=3331
+CRM_SERVICE_PORT=3332
+WHATSAPP_PROVIDER=stub
 ```
 
-2. Instalar dependencias (se for rodar local sem Docker):
+Observacao: ha fallback de portas no codigo para 3331/3332 quando nao informado.
+
+## Execucao Local
 
 ```bash
+cd backend
 npm install
-```
-
-3. Gerar Prisma Client e aplicar migrations:
-
-```bash
 npm run prisma:generate
-npm run prisma:migrate -- --name init
-```
-
-4. Popular dados iniciais:
-
-```bash
+npm run prisma:deploy
 npm run prisma:seed
 ```
 
-5. Rodar microsservicos em desenvolvimento (local):
+Inicie os servicos em terminais separados:
 
 ```bash
 npm run dev:auth
 npm run dev:crm
 ```
 
-Ou subir ambos com Docker Compose:
+## Execucao com Docker
 
 ```bash
+cd backend
 docker compose up -d
 ```
 
-## Scripts
+## Scripts Disponiveis
 
-- `npm run dev`: sobe o monolito legado (compatibilidade)
-- `npm run dev:auth`: sobe o Auth Service
-- `npm run dev:crm`: sobe o CRM Service
-- `npm run build`: compila TypeScript para `dist`
-- `npm run start`: executa build compilada do monolito legado
-- `npm run start:auth`: executa build compilada do Auth Service
-- `npm run start:crm`: executa build compilada do CRM Service
-- `npm run test`: executa testes automatizados (Vitest)
-- `npm run test:watch`: executa testes em modo watch
+- `npm run dev`: servidor legado unico (`src/main/server.ts`)
+- `npm run dev:auth`: Auth Service em modo watch
+- `npm run dev:crm`: CRM Service em modo watch
+- `npm run build`: compilacao TypeScript
+- `npm run start:auth`: inicia Auth compilado
+- `npm run start:crm`: inicia CRM compilado
+- `npm run test`: executa testes (vitest run)
+- `npm run test:watch`: executa testes em watch
 - `npm run prisma:generate`: gera Prisma Client
-- `npm run prisma:migrate -- --name init`: cria/aplica migration local
-- `npm run prisma:deploy`: aplica migrations em ambiente de deploy
-- `npm run prisma:seed`: popula dados iniciais
+- `npm run prisma:migrate -- --name <nome>`: cria/aplica migration local
+- `npm run prisma:deploy`: aplica migrations pendentes
+- `npm run prisma:seed`: carrega dados de seed
 
-## Testes
+## Endpoints de Referencia
 
-- Framework: `Vitest`
-- Testes HTTP: `Supertest`
-- Os testes atuais usam mock do Prisma (nao dependem de banco ativo)
-- Arquivos principais:
-	- `tests/integration/app.test.ts`
-	- `tests/mocks/prisma-mock.ts`
+Base Auth: `http://localhost:3331`
 
-Auth Service: `http://localhost:3331`
-CRM Service: `http://localhost:3332`
-Healthchecks:
-- `GET http://localhost:3331/health`
-- `GET http://localhost:3332/health`
-
-## Usuario inicial (seed)
-
-- Email: `admin@crm.local`
-- Senha: `admin123`
-- Role: `ADMIN`
-
-## Endpoints principais
-
-### Auth
-- Base URL: `http://localhost:3331`
+- `GET /health`
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/refresh`
 
-### Users
-- Base URL: `http://localhost:3332`
-- `GET /users` (ADMIN, MANAGER)
-- `POST /users` (ADMIN)
-- `PATCH /users/:id` (ADMIN)
-- `DELETE /users/:id` (ADMIN)
+Base CRM: `http://localhost:3332`
 
-### Leads
-- Base URL: `http://localhost:3332`
+- `GET /health`
+- `GET /pipeline`
+- `POST /pipeline`
+- `POST /pipeline/:pipelineId/stages`
+- `POST /pipeline/move-lead/:leadId`
 - `GET /leads`
 - `POST /leads`
 - `PATCH /leads/:id`
-- `DELETE /leads/:id`
-
-### Pipeline
-- Base URL: `http://localhost:3332`
-- `GET /pipeline`
-- `POST /pipeline` (ADMIN, MANAGER)
-- `POST /pipeline/:pipelineId/stages` (ADMIN, MANAGER)
-- `POST /pipeline/move-lead/:leadId`
-
-### Deals
-- Base URL: `http://localhost:3332`
-- `GET /deals`
-- `POST /deals`
-- `PATCH /deals/:id`
-
-### Cadences
-- Base URL: `http://localhost:3332`
-- `GET /cadences`
-- `POST /cadences` (ADMIN, MANAGER)
-- `POST /cadences/:cadenceId/steps` (ADMIN, MANAGER)
-- `POST /cadences/assign`
-
-### Messages
-- Base URL: `http://localhost:3332`
-- `GET /messages`
-- `POST /messages/send`
-
-### Integrations
-- Base URL: `http://localhost:3332`
-- `POST /integrations/whatsapp/webhook`
-
-### Activities
-- Base URL: `http://localhost:3332`
-- `GET /activities`
-- `GET /activities/lead/:leadId`
-
-### Reports
-- Base URL: `http://localhost:3332`
+- `GET /users`
+- `POST /users`
 - `GET /reports/funnel`
 - `GET /reports/deals`
 - `GET /reports/performance/users`
 
-## Scheduler
+## Multi-Tenancy e RBAC
 
-O scheduler executa automaticamente no bootstrap do CRM Service e processa cadencias ativas a cada minuto.
+- Perfis: `SUPER_ADMIN`, `TENANT_ADMIN`, `USER`.
+- Escopo tenant derivado de token (`tenantId`) e, para `SUPER_ADMIN`, pode ser sobrescrito por header `x-tenant-id`.
+- Middlewares de auth/role aplicados por modulo de rota.
 
-## Seguranca
+## Seed e Onboarding
 
-- Senhas com `bcryptjs`
-- JWT access + refresh
-- Middleware de autenticacao
-- Middleware de autorizacao por role
-- Validacao de payload com Zod
-- CORS ativo
+O seed cria usuarios iniciais e tenant de referencia.
+
+No fluxo atual, tenants novos recebem provisionamento de pipeline inicial para evitar ambiente vazio no primeiro acesso.
+
+## Testes
+
+```bash
+cd backend
+npm run test
+```
+
+Arquivos de referencia:
+
+- `tests/integration/app.test.ts`
+- `tests/mocks/prisma-mock.ts`

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { IntegrationsService } from '../application/integrations-service';
+import { AppError } from '../../../shared/errors/AppError';
 
 const webhookSchema = z.object({
   leadId: z.string(),
@@ -13,7 +14,13 @@ export class IntegrationsController {
 
   whatsappWebhook = async (req: Request, res: Response): Promise<void> => {
     const body = webhookSchema.parse(req.body);
-    const result = await this.service.handleWhatsappWebhook(body);
+    const tenantId = req.headers['x-tenant-id'];
+
+    if (typeof tenantId !== 'string' || !tenantId) {
+      throw new AppError('Header x-tenant-id obrigatorio no webhook', 400);
+    }
+
+    const result = await this.service.handleWhatsappWebhook({ ...body, tenantId });
     res.status(201).json(result);
   };
 }

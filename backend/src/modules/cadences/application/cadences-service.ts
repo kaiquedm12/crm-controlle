@@ -2,12 +2,14 @@ import { CadenceExecutionStatus, CadenceStepType } from '@prisma/client';
 import { prisma } from '../../../infra/database/prisma/client';
 
 type CreateCadenceInput = {
+  tenantId: string;
   name: string;
   isActive?: boolean;
   createdBy: string;
 };
 
 type CreateStepInput = {
+  tenantId: string;
   cadenceId: string;
   order: number;
   dayOffset: number;
@@ -16,6 +18,7 @@ type CreateStepInput = {
 };
 
 type AssignCadenceInput = {
+  tenantId: string;
   leadId: string;
   cadenceId: string;
   startInMinutes?: number;
@@ -23,8 +26,9 @@ type AssignCadenceInput = {
 };
 
 export class CadencesService {
-  list() {
+  list(tenantId: string) {
     return prisma.cadence.findMany({
+      where: { tenantId },
       include: {
         steps: {
           orderBy: { order: 'asc' },
@@ -38,6 +42,7 @@ export class CadencesService {
   create(input: CreateCadenceInput) {
     return prisma.cadence.create({
       data: {
+        tenantId: input.tenantId,
         name: input.name,
         isActive: input.isActive ?? true,
         createdBy: input.createdBy,
@@ -48,6 +53,7 @@ export class CadencesService {
   createStep(input: CreateStepInput) {
     return prisma.cadenceStep.create({
       data: {
+        tenantId: input.tenantId,
         cadenceId: input.cadenceId,
         order: input.order,
         dayOffset: input.dayOffset,
@@ -72,6 +78,7 @@ export class CadencesService {
         lastError: null,
       },
       create: {
+        tenantId: input.tenantId,
         cadenceId: input.cadenceId,
         leadId: input.leadId,
         status: CadenceExecutionStatus.ACTIVE,
@@ -82,6 +89,7 @@ export class CadencesService {
 
     await prisma.activity.create({
       data: {
+        tenantId: input.tenantId,
         leadId: input.leadId,
         userId: input.actorUserId,
         type: 'CADENCE_ASSIGNED',

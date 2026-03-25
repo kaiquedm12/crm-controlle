@@ -1,0 +1,22 @@
+-- Super Admin module schema extensions
+DO $$ BEGIN
+  CREATE TYPE "TenantPlan" AS ENUM ('BASIC', 'PRO', 'ENTERPRISE');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "TenantStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'TRIAL');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+ALTER TABLE "User"
+  ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE "Tenant"
+  ADD COLUMN IF NOT EXISTS "cnpj" TEXT,
+  ADD COLUMN IF NOT EXISTS "email" TEXT,
+  ADD COLUMN IF NOT EXISTS "phone" TEXT,
+  ADD COLUMN IF NOT EXISTS "plan" "TenantPlan" NOT NULL DEFAULT 'BASIC',
+  ADD COLUMN IF NOT EXISTS "status" "TenantStatus" NOT NULL DEFAULT 'TRIAL';

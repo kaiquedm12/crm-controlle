@@ -4,14 +4,16 @@ import { sendWhatsappMessage } from '../../../infra/integrations/whatsapp/whatsa
 import { AppError } from '../../../shared/errors/AppError';
 
 type SendMessageInput = {
+  tenantId: string;
   leadId: string;
   content: string;
   actorUserId: string;
 };
 
 export class MessagesService {
-  list() {
+  list(tenantId: string) {
     return prisma.message.findMany({
+      where: { tenantId },
       include: {
         lead: { select: { id: true, name: true, phone: true } },
         user: { select: { id: true, name: true } },
@@ -22,7 +24,7 @@ export class MessagesService {
   }
 
   async send(input: SendMessageInput) {
-    const lead = await prisma.lead.findUnique({ where: { id: input.leadId } });
+    const lead = await prisma.lead.findFirst({ where: { id: input.leadId, tenantId: input.tenantId } });
 
     if (!lead) {
       throw new AppError('Lead nao encontrado', 404);
@@ -39,6 +41,7 @@ export class MessagesService {
 
     const message = await prisma.message.create({
       data: {
+        tenantId: input.tenantId,
         leadId: lead.id,
         userId: input.actorUserId,
         direction: MessageDirection.OUTBOUND,
@@ -49,6 +52,7 @@ export class MessagesService {
 
     await prisma.activity.create({
       data: {
+        tenantId: input.tenantId,
         leadId: lead.id,
         userId: input.actorUserId,
         type: 'MESSAGE_SENT',

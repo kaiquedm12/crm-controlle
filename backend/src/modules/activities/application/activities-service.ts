@@ -1,8 +1,9 @@
 import { prisma } from '../../../infra/database/prisma/client';
 
 export class ActivitiesService {
-  list() {
+  list(tenantId: string) {
     return prisma.activity.findMany({
+      where: { tenantId },
       include: {
         user: { select: { id: true, name: true, email: true } },
         lead: { select: { id: true, name: true } },
@@ -12,9 +13,9 @@ export class ActivitiesService {
     });
   }
 
-  listByLead(leadId: string) {
+  listByLead(leadId: string, tenantId: string) {
     return prisma.activity.findMany({
-      where: { leadId },
+      where: { leadId, tenantId },
       include: {
         user: { select: { id: true, name: true, email: true } },
       },

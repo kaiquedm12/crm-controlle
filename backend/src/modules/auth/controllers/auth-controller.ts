@@ -8,11 +8,13 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   role: z.nativeEnum(UserRole).optional(),
+  tenantId: z.string().min(6),
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  tenantId: z.string().min(6).optional(),
 });
 
 const refreshSchema = z.object({
